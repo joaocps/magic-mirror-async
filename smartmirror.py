@@ -45,7 +45,7 @@ gui_queue = Queue()
 
 TIME_ZONE = pytz.timezone('Europe/Lisbon')
 TIME_FORMAT: str = '%H:%M'
-DATE_FORMAT: str = '%m/%d/%Y'
+DATE_FORMAT: str = '%d/%m/%Y'
 
 
 class Clock(Frame):
