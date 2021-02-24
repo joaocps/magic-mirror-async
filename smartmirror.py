@@ -106,24 +106,40 @@ class News(Frame):
     def __init__(self, parent, *args, **kwargs):
         Frame.__init__(self, parent, *args, **kwargs)
         self.config(bg='black')
-        self.title = 'News'  # 'News' is more internationally generic
-        self.newsLbl = Label(self, text=self.title, font=('Helvetica', medium_text_size), fg="white", bg="black")
-        self.newsLbl.pack(side=TOP, anchor=W)
-        self.headlinesContainer = Frame(self, bg="black")
-        self.headlinesContainer.pack(side=TOP)
+        self.title_pt = 'News Portugal'
+        self.title_uk = 'News United Kingdom'
+        self.newsLblPt = Label(self, text=self.title_pt, font=('Helvetica', medium_text_size), fg="white", bg="black")
+        self.newsLblPt.pack(side=TOP, anchor=W)
+        self.newsLblUk = None
+        self.headlinesContainerPt = Frame(self, bg="black")
+        self.headlinesContainerPt.pack(side=TOP, anchor=W)
+        self.newsLblUk = Label(self, text=self.title_uk, font=('Helvetica', medium_text_size), fg="white", bg="black")
+        self.newsLblUk.pack(side=TOP, anchor=W)
+        self.headlinesContainerUk = Frame(self, bg="black")
+        self.headlinesContainerUk.pack(side=TOP, anchor=W)
         self.get_headlines()
 
     async def get_headlines(self):
         async with aiohttp.ClientSession() as session:
             api = NEWS_API(session)
             while True:
-                for widget in self.headlinesContainer.winfo_children():
+                for widget in self.headlinesContainerPt.winfo_children():
                     widget.destroy()
+                for widget in self.headlinesContainerUk.winfo_children():
+                    widget.destroy()
+
                 news_pt = await NewsLocation.get(api, "pt")
+                news_uk = await NewsLocation.get(api, "uk")
+
                 for post in news_pt:
-                    gui_queue.put(lambda: NewsHeadline(self.headlinesContainer, post).pack(side=TOP, anchor=W))
+                    gui_queue.put(lambda: NewsHeadline(self.headlinesContainerPt, post).pack(side=TOP, anchor=W))
                     # Add effect of waterfall
                     time.sleep(1)
+                for post in news_uk:
+                    gui_queue.put(lambda: NewsHeadline(self.headlinesContainerUk, post).pack(side=TOP, anchor=W))
+                    # Add effect of waterfall
+                    time.sleep(1)
+
                 await asyncio.sleep(10)
 
 
@@ -135,7 +151,6 @@ class NewsHeadline(Frame):
         image = image.convert('RGB')
         photo = ImageTk.PhotoImage(image)
 
-        print(event_name)
         self.iconLbl = Label(self, bg='black', image=photo)
         self.iconLbl.image = photo
         self.iconLbl.pack(side=LEFT, anchor=N)
