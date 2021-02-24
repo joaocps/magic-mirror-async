@@ -2,7 +2,6 @@ import queue
 from queue import Queue
 from tkinter import *
 from datetime import datetime
-import locale
 import threading
 import time
 import aiohttp
@@ -10,15 +9,10 @@ import asyncio
 import pytz
 
 from PIL import Image, ImageTk
-from contextlib import contextmanager
 
 from library.apis import NEWS_API, NewsLocation
 
-LOCALE_LOCK = threading.Lock()
 
-ui_locale = ''  # e.g. 'fr_FR' fro French, '' as default
-time_format = 24  # 12 or 24
-news_country_code = 'pt-PT'
 weather_api_token = '<TOKEN>'  # create account at https://darksky.net/dev/
 weather_lang = 'en'  # see https://darksky.net/dev/docs/forecast for full list of language parameters values
 weather_unit = 'us'  # see https://darksky.net/dev/docs/forecast for full list of unit parameters values
@@ -91,10 +85,6 @@ class Clock(Frame):
                 self.current_day = current_day
                 gui_queue.put(lambda: ClockGui(self.parent).update_day(current_day, self.dayLbl))
 
-            # calls itself every 200 milliseconds
-            # to update the time display as needed
-            # could use >200 ms, but display gets jerky
-            # self.timeLbl.after(200, self.tick)
             await asyncio.sleep(1)
 
 
@@ -156,7 +146,7 @@ class News(Frame):
                     # Add effect of waterfall
                     time.sleep(1)
 
-                await asyncio.sleep(100)
+                await asyncio.sleep(300)
 
 
 class NewsGui(Frame):
