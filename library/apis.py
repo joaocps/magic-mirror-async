@@ -86,12 +86,12 @@ class WeatherLocation:
         self.units = 'metric'
 
     async def get(self, api):
-        formated_url = f'{self.url}/data/2.5/onecall' \
+        formatted_url = f'{self.url}/data/2.5/onecall' \
                        f'?lat={self.latitude}' \
                        f'&lon={self.longitude}' \
                        f'&appid={self.key}' \
                        f'&lang={self.lang}' \
                        f'&units={self.units}'
-        raw_weather = await api.retrieve(url=formated_url)
+        raw_weather = await api.retrieve(url=formatted_url)
         weather = Weather(raw_weather)
         return weather
