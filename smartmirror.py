@@ -134,8 +134,11 @@ class News(Frame):
                 for widget in self.headlinesContainerUk.winfo_children():
                     widget.destroy()
 
-                news_pt = await NewsLocation.get(api, "pt")
-                news_uk = await NewsLocation.get(api, "uk")
+                location_pt = NewsLocation("pt")
+                location_uk = NewsLocation("uk")
+
+                news_pt = await location_pt.get(api)
+                news_uk = await location_uk.get(api)
 
                 for post in news_pt:
                     gui_queue.put(lambda: NewsGui(self.headlinesContainerPt, post).pack(side=TOP, anchor=W))
@@ -165,6 +168,95 @@ class NewsGui(Frame):
         self.eventNameLbl = Label(self, text=self.eventName, font=('Helvetica', small_text_size), fg="white",
                                   bg="black")
         self.eventNameLbl.pack(side=LEFT, anchor=N)
+
+class Weather(Frame):
+    def __init__(self, parent, *args, **kwargs):
+        Frame.__init__(self, parent, bg='black')
+        self.temperature = ''
+        self.forecast = ''
+        self.location = ''
+        self.currently = ''
+        self.icon = ''
+        self.degreeFrm = Frame(self, bg="black")
+        self.degreeFrm.pack(side=TOP, anchor=W)
+        self.temperatureLbl = Label(self.degreeFrm, font=('Helvetica', xlarge_text_size), fg="white", bg="black")
+        self.temperatureLbl.pack(side=LEFT, anchor=N)
+        self.iconLbl = Label(self.degreeFrm, bg="black")
+        self.iconLbl.pack(side=LEFT, anchor=N, padx=20)
+        self.currentlyLbl = Label(self, font=('Helvetica', medium_text_size), fg="white", bg="black")
+        self.currentlyLbl.pack(side=TOP, anchor=W)
+        self.forecastLbl = Label(self, font=('Helvetica', small_text_size), fg="white", bg="black")
+        self.forecastLbl.pack(side=TOP, anchor=W)
+        self.locationLbl = Label(self, font=('Helvetica', small_text_size), fg="white", bg="black")
+        self.locationLbl.pack(side=TOP, anchor=W)
+        # self.get_weather()
+
+    async def get_weather(self):
+        print('hello')
+        await asyncio.sleep(300)
+
+    def get_weathers(self):
+
+        if latitude is None and longitude is None:
+
+            lat = location_obj['latitude']
+            lon = location_obj['longitude']
+
+            location2 = "%s, %s" % (location_obj['city'], location_obj['region_code'])
+
+            # get weather
+            weather_req_url = "https://api.darksky.net/forecast/%s/%s,%s?lang=%s&units=%s" % (weather_api_token, lat,lon,weather_lang,weather_unit)
+        else:
+            location2 = ""
+            # get weather
+            weather_req_url = "https://api.darksky.net/forecast/%s/%s,%s?lang=%s&units=%s" % (weather_api_token, latitude, longitude, weather_lang, weather_unit)
+
+        r = requests.get(weather_req_url)
+        weather_obj = json.loads(r.text)
+
+        degree_sign= u'\N{DEGREE SIGN}'
+        temperature2 = "%s%s" % (str(int(weather_obj['currently']['temperature'])), degree_sign)
+        currently2 = weather_obj['currently']['summary']
+        forecast2 = weather_obj["hourly"]["summary"]
+
+        icon_id = weather_obj['currently']['icon']
+        icon2 = None
+
+        if icon_id in icon_lookup:
+            icon2 = icon_lookup[icon_id]
+
+        if icon2 is not None:
+            if self.icon != icon2:
+                self.icon = icon2
+                image = Image.open(icon2)
+                image = image.resize((100, 100), Image.ANTIALIAS)
+                image = image.convert('RGB')
+                photo = ImageTk.PhotoImage(image)
+
+                self.iconLbl.config(image=photo)
+                self.iconLbl.image = photo
+        else:
+            # remove image
+            self.iconLbl.config(image='')
+
+        if self.currently != currently2:
+            self.currently = currently2
+            self.currentlyLbl.config(text=currently2)
+        if self.forecast != forecast2:
+            self.forecast = forecast2
+            self.forecastLbl.config(text=forecast2)
+        if self.temperature != temperature2:
+            self.temperature = temperature2
+            self.temperatureLbl.config(text=temperature2)
+        if self.location != location2:
+            if location2 == ", ":
+                self.location = "Cannot Pinpoint Location"
+                self.locationLbl.config(text="Cannot Pinpoint Location")
+            else:
+                self.location = location2
+                self.locationLbl.config(text=location2)
+
+        self.after(600000, self.get_weather)
 
 
 class Calendar(Frame):
@@ -211,14 +303,12 @@ class FullscreenWindow:
         self.state = False
         self.tk.bind("<Return>", self.toggle_fullscreen)
         self.tk.bind("<Escape>", self.end_fullscreen)
-        # Tasker
-        # self.gui_queue = Queue()
         # clock
         self.clock = Clock(self.topFrame)
         self.clock.pack(side=RIGHT, anchor=N, padx=100, pady=60)
         # weather
-        # self.weather = Weather(self.topFrame)
-        # self.weather.pack(side=LEFT, anchor=N, padx=100, pady=60)
+        self.weather = Weather(self.topFrame)
+        self.weather.pack(side=LEFT, anchor=N, padx=100, pady=60)
         # news
         self.news = News(self.bottomFrame)
         self.news.pack(side=LEFT, anchor=S, padx=100, pady=60)
@@ -253,6 +343,7 @@ class FullscreenWindow:
         asyncio.set_event_loop(loop)
         loop.create_task(self.news.get_headlines())
         loop.create_task(self.clock.get_day_time())
+        loop.create_task(self.weather.get_weather())
         loop.run_forever()
 
 
