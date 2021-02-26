@@ -92,6 +92,6 @@ class WeatherLocation:
                        f'&appid={self.key}' \
                        f'&lang={self.lang}' \
                        f'&units={self.units}'
-        print(formated_url)
         raw_weather = await api.retrieve(url=formated_url)
-        print(Weather(raw_weather).timezone)
+        weather = Weather(raw_weather)
+        return weather
