@@ -15,11 +15,11 @@ class Weather:
 
     @property
     def temperature(self):
-        return self._data['current']
+        return self._data['current']['temp']
 
     @property
     def description(self):
-        return self._data['current']['temp']['weather']
+        return self._data['current']['weather'][0]['description']
 
     def __repr__(self):
         return f'{self.temperature}º right now'

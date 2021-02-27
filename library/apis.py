@@ -93,5 +93,5 @@ class WeatherLocation:
                        f'&lang={self.lang}' \
                        f'&units={self.units}'
         raw_weather = await api.retrieve(url=formatted_url)
-        weather = Weather(raw_weather)
-        return weather
+        formatted_weather = Weather(raw_weather)
+        return formatted_weather
