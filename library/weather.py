@@ -21,5 +21,9 @@ class Weather:
     def description(self):
         return self._data['current']['weather'][0]['description']
 
+    @property
+    def alert(self):
+        if 
+
     def __repr__(self):
         return f'{self.temperature}º right now'
