@@ -23,7 +23,8 @@ class Weather:
 
     @property
     def alert(self):
-        if 
+        pass
+        #TODO: if alert exists -> display
 
     def __repr__(self):
         return f'{self.temperature}º right now'
