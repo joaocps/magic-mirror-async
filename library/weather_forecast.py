@@ -24,7 +24,8 @@ class WeatherForecast:
 
     @property
     def rain_probability(self):
-        return self._data['pop']
+        decimal_rain = self._data['pop']
+        return f'{decimal_rain:.0%}'
 
     @property
     def short_description(self):
