@@ -14,17 +14,23 @@ class Weather:
         return self._data['timezone']
 
     @property
-    def temperature(self):
+    def current_temperature(self):
         return self._data['current']['temp']
 
     @property
-    def description(self):
+    def current_description(self):
         return self._data['current']['weather'][0]['description']
 
     @property
     def alert(self):
-        pass
-        #TODO: if alert exists -> display
+        if 'alerts' in self._data:
+            return self._data['alerts']['description']
+        else:
+            return False
+
+    @property
+    def forecast(self):
+        return self._data['daily'][0]['dt']
 
     def __repr__(self):
-        return f'{self.temperature}º right now'
+        return f'{self.current_temperature}º right now'
