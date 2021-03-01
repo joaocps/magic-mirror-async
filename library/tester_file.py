@@ -19,12 +19,18 @@ async def main():
         location = WeatherLocation(latitude=40.440811, longitude=-8.435070)
 
         weather = await location.get(api2)
-        print(weather.timezone)
-        print(weather.current_temperature)
-        print(weather.current_description)
+        # print(weather.timezone)
+        # print(weather.current_temperature)
+        # print(weather.current_description)
         if weather.alert:
             print("ALERT")
-        print(weather.forecast)
+        for x in weather.forecast:
+            print(x.week_day)
+            print(x.min_temperature)
+            print(x.max_temperature)
+            print(x.rain_probability)
+            print(x.short_description)
+            print(x.full_description)
 
 
 asyncio.get_event_loop().run_until_complete(main())

@@ -1,5 +1,7 @@
 import logging
 
+from library.weather_forecast import WeatherForecast
+
 LOGGER = logging.getLogger(__name__)
 
 
@@ -30,7 +32,8 @@ class Weather:
 
     @property
     def forecast(self):
-        return self._data['daily'][0]['dt']
+        forecasts = [WeatherForecast(forecast_data) for forecast_data in self._data['daily']]
+        return forecasts
 
     def __repr__(self):
         return f'{self.current_temperature}º right now'
