@@ -1,4 +1,3 @@
-
 import json
 import logging
 import aiohttp
@@ -7,13 +6,10 @@ from library.news import News
 from library.weather import Weather
 
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
 
 API_NEWS_PORTUGAL = "https://news.google.com/rss?hl=pt-PT&gl=PT&ceid=PT:pt-150"
 API_NEWS_UK = "https://news.google.com/rss?hl=en-GB&gl=GB&ceid=GB:en-150"
 
-
-# needs &output=rss ??
 
 class NEWS_API:  # pylint: disable=invalid-name
     """Interfaces to https://news.google.com/"""
@@ -30,7 +26,9 @@ class NEWS_API:  # pylint: disable=invalid-name
                 if res.status != 200:
                     raise Exception("Could not retrieve information from API")
                 if res.content_type == "application/json":
+                    LOGGER.info("JSON content retrieved from Google News")
                     return await res.json()
+                LOGGER.info("Text content retrieved from Google News")
                 return await res.text()
         except aiohttp.ClientError as err:
             LOGGER.error(err)
@@ -53,7 +51,9 @@ class WEATHER_API:  # pylint: disable=invalid-name
                 if res.status != 200:
                     raise Exception("Could not retrieve information from API")
                 if res.content_type == "application/json":
+                    LOGGER.info("JSON content retrieved from Open Weather")
                     return await res.json()
+                LOGGER.info("Text content retrieved from Open Weather")
                 return await res.text()
         except aiohttp.ClientError as err:
             LOGGER.error(err)
@@ -87,11 +87,11 @@ class WeatherLocation:
 
     async def get(self, api):
         formatted_url = f'{self.url}/data/2.5/onecall' \
-                       f'?lat={self.latitude}' \
-                       f'&lon={self.longitude}' \
-                       f'&appid={self.key}' \
-                       f'&lang={self.lang}' \
-                       f'&units={self.units}'
+                        f'?lat={self.latitude}' \
+                        f'&lon={self.longitude}' \
+                        f'&appid={self.key}' \
+                        f'&lang={self.lang}' \
+                        f'&units={self.units}'
         raw_weather = await api.retrieve(url=formatted_url)
         formatted_weather = Weather(raw_weather)
         return formatted_weather

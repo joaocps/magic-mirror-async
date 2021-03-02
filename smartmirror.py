@@ -1,3 +1,5 @@
+# External Imports
+import logging
 import queue
 from queue import Queue
 from tkinter import *
@@ -7,23 +9,27 @@ import time
 import aiohttp
 import asyncio
 import pytz
-
+import coloredlogs
 from PIL import Image, ImageTk
 
+# Local Imports
 from library.apis import NEWS_API, NewsLocation, WEATHER_API, WeatherLocation
 
-weather_api_token = '<TOKEN>'  # create account at https://darksky.net/dev/
-weather_lang = 'en'  # see https://darksky.net/dev/docs/forecast for full list of language parameters values
-weather_unit = 'us'  # see https://darksky.net/dev/docs/forecast for full list of unit parameters values
-latitude = None  # Set this if IP location lookup does not work for you (must be a string)
-longitude = None  # Set this if IP location lookup does not work for you (must be a string)
+# Logging variables config
+logging.captureWarnings(True)
+LOGGER = logging.getLogger(__name__)
+coloredlogs.install(level='INFO')
+
+# Const Variables
 xlarge_text_size = 94
 large_text_size = 48
 medium_text_size = 28
 small_text_size = 18
+TIME_ZONE = pytz.timezone('Europe/Lisbon')
+TIME_FORMAT: str = '%H:%M'
+DATE_FORMAT: str = '%d/%m/%Y'
 
-# maps open weather icons to
-# icon reading is not impacted by the 'lang' parameter
+# Icon Mapping
 icon_lookup = {
     'Clear': "assets/Sun.png",  # clear sky day
     'wind': "assets/Wind.png",  # wind
@@ -41,15 +47,18 @@ icon_lookup = {
     'hail': "assests/Hail.png"  # hail
 }
 
+# Queue with gui update tasks
 gui_queue = Queue()
-
-TIME_ZONE = pytz.timezone('Europe/Lisbon')
-TIME_FORMAT: str = '%H:%M'
-DATE_FORMAT: str = '%d/%m/%Y'
 
 
 class Clock(Frame):
     def __init__(self, parent, *args, **kwargs):
+        """
+        Clock Frame located at NW with Hour, day of week and Date
+        :param parent:
+        :param args:
+        :param kwargs:
+        """
         Frame.__init__(self, parent, bg='black')
         self.parent = parent
         # initialize time label
@@ -64,9 +73,14 @@ class Clock(Frame):
         self.current_date = ''
         self.dateLbl = Label(self, text=self.current_date, font=('Helvetica', small_text_size), fg="white", bg="black")
         self.dateLbl.pack(side=TOP, anchor=E)
+        # perform request
         self.get_day_time()
 
     async def get_day_time(self):
+        """
+        Get current day, hour and date and send to gui updater queue every second.
+        :return:
+        """
         while True:
             full_date_time = datetime.now(TIME_ZONE)
 
@@ -90,6 +104,10 @@ class Clock(Frame):
 
 class ClockGui(Frame):
     def __init__(self, parent):
+        """
+        Update Gui labels with associated values
+        :param parent:
+        """
         Frame.__init__(self, parent, bg='black')
 
     @staticmethod
@@ -110,22 +128,38 @@ class ClockGui(Frame):
 
 class News(Frame):
     def __init__(self, parent, *args, **kwargs):
+        """
+        News Frame located at South with headlines from Portugal and Uk
+        :param parent:
+        :param args:
+        :param kwargs:
+        """
         Frame.__init__(self, parent, *args, **kwargs)
         self.config(bg='black')
+        # initialize titles
         self.title_pt = 'News Portugal'
         self.title_uk = 'News United Kingdom'
+        # initialize news from pt label
         self.newsLblPt = Label(self, text=self.title_pt, font=('Helvetica', medium_text_size), fg="white", bg="black")
         self.newsLblPt.pack(side=TOP, anchor=W)
         self.newsLblUk = None
+        # initialize news from pt container
         self.headlinesContainerPt = Frame(self, bg="black")
         self.headlinesContainerPt.pack(side=TOP, anchor=W)
+        # initialize news from uk label
         self.newsLblUk = Label(self, text=self.title_uk, font=('Helvetica', medium_text_size), fg="white", bg="black")
         self.newsLblUk.pack(side=TOP, anchor=W)
+        # initialize news from uk container
         self.headlinesContainerUk = Frame(self, bg="black")
         self.headlinesContainerUk.pack(side=TOP, anchor=W)
+        # perform request
         self.get_headlines()
 
     async def get_headlines(self):
+        """
+        Get headlines from pt/uk and send to gui updater queue every 5 minutes.
+        :return:
+        """
         async with aiohttp.ClientSession() as session:
             api = NEWS_API(session)
             while True:
@@ -154,6 +188,11 @@ class News(Frame):
 
 class NewsGui(Frame):
     def __init__(self, parent, event_name=""):
+        """
+        Update Gui labels with associated headline value and news icon at the beginning
+        :param parent:
+        :param event_name:
+        """
         Frame.__init__(self, parent, bg='black')
         image = Image.open("assets/Newspaper.png")
         image = image.resize((25, 25), Image.ANTIALIAS)
@@ -172,12 +211,19 @@ class NewsGui(Frame):
 
 class Weather(Frame):
     def __init__(self, parent, *args, **kwargs):
+        """
+        Weather Frame located at NE with current weather and forecast from Anadia/Portugal
+        :param parent:
+        :param args:
+        :param kwargs:
+        """
         Frame.__init__(self, parent, bg='black')
         self.parent = parent
+        # local variables initialization
         self.temperature = None
         self.icon = None
-        self.forecast = ''
-        self.location = ''
+        self.forecast = None
+        self.location = None
         self.current_description = None
         # Initialize Temperature Frame
         self.degreeFrm = Frame(self, bg="black")
@@ -198,6 +244,11 @@ class Weather(Frame):
         self.get_weather()
 
     async def get_weather(self):
+        """
+        Get weather from Anadia/PT and send to gui updater queue every minute.
+        Weather object contains forecast information -> weather.forecast
+        :return:
+        """
         async with aiohttp.ClientSession() as session:
             api = WEATHER_API(session)
             while True:
@@ -220,9 +271,10 @@ class Weather(Frame):
                     gui_queue.put(lambda: WeatherGui(self.parent)
                                   .update_description(weather.current_description, self.currentlyLbl))
 
-                await asyncio.sleep(30)
+                await asyncio.sleep(60)
 
     # Dummy method, just for idea caching !
+    """
     def get_weathers(self):
 
         if latitude is None and longitude is None:
@@ -287,10 +339,20 @@ class Weather(Frame):
                 self.locationLbl.config(text=location2)
 
         self.after(600000, self.get_weather)
+    """
 
 
 class WeatherGui(Frame):
     def __init__(self, parent, event_name=""):
+        """
+        Update Gui labels with associated weather values like temperature, description and Icon associated.
+        Icons lookup with images located inside /assets folder
+
+        TODO: Forecast positioning with min temperature, max temperature and icon
+
+        :param parent:
+        :param event_name:
+        """
         Frame.__init__(self, parent, bg='black')
 
     @staticmethod
@@ -301,6 +363,7 @@ class WeatherGui(Frame):
     @staticmethod
     def update_icon(current_main_description, iconLbl):
         if current_main_description in icon_lookup:
+            # Icon lookup key must match the main description
             image = Image.open(icon_lookup[current_main_description])
             image = image.resize((100, 100), Image.ANTIALIAS)
             image = image.convert('RGB')
@@ -315,77 +378,68 @@ class WeatherGui(Frame):
             currentlyLbl.config(text=current_description.title())
 
 
-class Calendar(Frame):
-    def __init__(self, parent, *args, **kwargs):
-        Frame.__init__(self, parent, bg='black')
-        self.title = 'Calendar Events'
-        self.calendarLbl = Label(self, text=self.title, font=('Helvetica', medium_text_size), fg="white", bg="black")
-        self.calendarLbl.pack(side=TOP, anchor=E)
-        self.calendarEventContainer = Frame(self, bg='black')
-        self.calendarEventContainer.pack(side=TOP, anchor=E)
-        self.get_events()
-
-    def get_events(self):
-        # TODO: implement this method
-        # reference https://developers.google.com/google-apps/calendar/quickstart/python
-
-        # remove all children
-        for widget in self.calendarEventContainer.winfo_children():
-            widget.destroy()
-
-        calendar_event = CalendarEvent(self.calendarEventContainer)
-        calendar_event.pack(side=TOP, anchor=E)
-        pass
-
-
-class CalendarEvent(Frame):
-    def __init__(self, parent, event_name="Event 1"):
-        Frame.__init__(self, parent, bg='black')
-        self.eventName = event_name
-        self.eventNameLbl = Label(self, text=self.eventName, font=('Helvetica', small_text_size), fg="white",
-                                  bg="black")
-        self.eventNameLbl.pack(side=TOP, anchor=E)
-
-
 class FullscreenWindow:
 
     def __init__(self):
+        # environment initialization
         self.tk = Tk()
         self.tk.configure(background='black')
+        # frame creation
         self.topFrame = Frame(self.tk, background='black')
         self.bottomFrame = Frame(self.tk, background='black')
         self.topFrame.pack(side=TOP, fill=BOTH, expand=YES)
         self.bottomFrame.pack(side=BOTTOM, fill=BOTH, expand=YES)
         self.state = False
+        # call to fullscreen feature and close feature
         self.tk.bind("<Return>", self.toggle_fullscreen)
         self.tk.bind("<Escape>", self.end_fullscreen)
+
         # clock
+        LOGGER.info("Clock Frame started.")
         self.clock = Clock(self.topFrame)
         self.clock.pack(side=RIGHT, anchor=N, padx=100, pady=60)
+
         # weather
+        LOGGER.info("Weather Frame started.")
         self.weather = Weather(self.topFrame)
         self.weather.pack(side=LEFT, anchor=N, padx=100, pady=60)
+
         # news
+        LOGGER.info("News Frame started.")
         self.news = News(self.bottomFrame)
         self.news.pack(side=LEFT, anchor=S, padx=100, pady=60)
-        # calender - removing for now
-        # self.calender = Calendar(self.bottomFrame)
-        # self.calender.pack(side = RIGHT, anchor=S, padx=100, pady=60)
+
+        LOGGER.info("Thread with async loop started.")
         threading.Thread(target=self.start_loop).start()
-        # Update Gui
+
+        LOGGER.info("Periodic GUI Updater started.")
         self.periodicGuiUpdate()
 
     def toggle_fullscreen(self, event=None):
+        """
+        Call for fulscreen mode
+        :param event:
+        :return:
+        """
         self.state = not self.state  # Just toggling the boolean
         self.tk.attributes("-fullscreen", self.state)
         return "break"
 
     def end_fullscreen(self, event=None):
+        """
+        Exit fullscreen mode
+        :param event:
+        :return:
+        """
         self.state = False
         self.tk.attributes("-fullscreen", False)
         return "break"
 
     def periodicGuiUpdate(self):
+        """
+        There's any task inside the gui updater queue? Let's do that!
+        :return:
+        """
         while True:
             try:
                 fn = gui_queue.get_nowait()
@@ -395,14 +449,24 @@ class FullscreenWindow:
         self.tk.after(100, self.periodicGuiUpdate)
 
     def start_loop(self):
+        """
+        Create a new event loop object, create tasks and run them!
+        :return:
+        """
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         loop.create_task(self.news.get_headlines())
         loop.create_task(self.clock.get_day_time())
         loop.create_task(self.weather.get_weather())
+        LOGGER.info("Tasks Created into loop.")
         loop.run_forever()
 
 
 if __name__ == '__main__':
+    LOGGER.critical("This program is distributed in the hope that it will be useful, "
+                    "but WITHOUT ANY WARRANTY; without even the implied warranty of "
+                    "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  "
+                    "See the GNU General Public License for more details.")
+
     w = FullscreenWindow()
     w.tk.mainloop()
