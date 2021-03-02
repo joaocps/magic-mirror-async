@@ -10,8 +10,7 @@ import pytz
 
 from PIL import Image, ImageTk
 
-from library.apis import NEWS_API, NewsLocation
-
+from library.apis import NEWS_API, NewsLocation, WEATHER_API, WeatherLocation
 
 weather_api_token = '<TOKEN>'  # create account at https://darksky.net/dev/
 weather_lang = 'en'  # see https://darksky.net/dev/docs/forecast for full list of language parameters values
@@ -26,18 +25,19 @@ small_text_size = 18
 # maps open weather icons to
 # icon reading is not impacted by the 'lang' parameter
 icon_lookup = {
-    'clear-day': "assets/Sun.png",  # clear sky day
+    'Clear': "assets/Sun.png",  # clear sky day
     'wind': "assets/Wind.png",  # wind
-    'cloudy': "assets/Cloud.png",  # cloudy day
+    'Clouds': "assets/Cloud.png",  # cloudy day
     'partly-cloudy-day': "assets/PartlySunny.png",  # partly cloudy day
-    'rain': "assets/Rain.png",  # rain day
-    'snow': "assets/Snow.png",  # snow day
+    'Rain': "assets/Rain.png",  # rain day
+    'Drizzle': "assets/Rain.png",  # rain day
+    'Snow': "assets/Snow.png",  # snow day
     'snow-thin': "assets/Snow.png",  # sleet day
-    'fog': "assets/Haze.png",  # fog day
+    'Fog': "assets/Haze.png",  # fog day
     'clear-night': "assets/Moon.png",  # clear sky night
     'partly-cloudy-night': "assets/PartlyMoon.png",  # scattered clouds night
     'thunderstorm': "assets/Storm.png",  # thunderstorm
-    'tornado': "assests/Tornado.png",  # tornado
+    'Tornado': "assests/Tornado.png",  # tornado
     'hail': "assests/Hail.png"  # hail
 }
 
@@ -54,7 +54,7 @@ class Clock(Frame):
         self.parent = parent
         # initialize time label
         self.current_time = ''
-        self.timeLbl = Label(self, font=('Helvetica', large_text_size), fg="white", bg="black")
+        self.timeLbl = Label(self, font=('Helvetica', xlarge_text_size), fg="white", bg="black")
         self.timeLbl.pack(side=TOP, anchor=E)
         # initialize day of week
         self.current_day = ''
@@ -169,32 +169,60 @@ class NewsGui(Frame):
                                   bg="black")
         self.eventNameLbl.pack(side=LEFT, anchor=N)
 
+
 class Weather(Frame):
     def __init__(self, parent, *args, **kwargs):
         Frame.__init__(self, parent, bg='black')
-        self.temperature = ''
+        self.parent = parent
+        self.temperature = None
+        self.icon = None
         self.forecast = ''
         self.location = ''
-        self.currently = ''
-        self.icon = ''
+        self.current_description = None
+        # Initialize Temperature Frame
         self.degreeFrm = Frame(self, bg="black")
         self.degreeFrm.pack(side=TOP, anchor=W)
+        # Add temperature label
         self.temperatureLbl = Label(self.degreeFrm, font=('Helvetica', xlarge_text_size), fg="white", bg="black")
         self.temperatureLbl.pack(side=LEFT, anchor=N)
+        # Add icon to frame
         self.iconLbl = Label(self.degreeFrm, bg="black")
         self.iconLbl.pack(side=LEFT, anchor=N, padx=20)
+        # Current description
         self.currentlyLbl = Label(self, font=('Helvetica', medium_text_size), fg="white", bg="black")
         self.currentlyLbl.pack(side=TOP, anchor=W)
-        self.forecastLbl = Label(self, font=('Helvetica', small_text_size), fg="white", bg="black")
-        self.forecastLbl.pack(side=TOP, anchor=W)
-        self.locationLbl = Label(self, font=('Helvetica', small_text_size), fg="white", bg="black")
-        self.locationLbl.pack(side=TOP, anchor=W)
-        # self.get_weather()
+        # self.forecastLbl = Label(self, font=('Helvetica', small_text_size), fg="white", bg="black")
+        # self.forecastLbl.pack(side=TOP, anchor=W)
+        # self.locationLbl = Label(self, font=('Helvetica', small_text_size), fg="white", bg="black")
+        # self.locationLbl.pack(side=TOP, anchor=W)
+        self.get_weather()
 
     async def get_weather(self):
-        print('hello')
-        await asyncio.sleep(300)
+        async with aiohttp.ClientSession() as session:
+            api = WEATHER_API(session)
+            while True:
+                # Location -> Anadia
+                location = WeatherLocation(latitude=40.440811, longitude=-8.435070)
 
+                # Get weather for my location
+                weather = await location.get(api)
+
+                if weather.current_temperature != self.temperature:
+                    self.temperature = weather.current_temperature
+                    gui_queue.put(lambda: WeatherGui(self.parent)
+                                  .update_temperature(str(weather.current_temperature), self.temperatureLbl))
+                if weather.current_main_description != self.icon:
+                    self.icon = weather.current_main_description
+                    gui_queue.put(lambda: WeatherGui(self.parent)
+                                  .update_icon(weather.current_main_description, self.iconLbl))
+                if weather.current_description != self.current_description:
+                    self.current_description = weather.current_description
+                    gui_queue.put(lambda: WeatherGui(self.parent)
+                                  .update_description(weather.current_description, self.currentlyLbl))
+
+                await asyncio.sleep(30)
+
+    # Dummy method, just for idea caching !
     def get_weathers(self):
 
         if latitude is None and longitude is None:
@@ -205,16 +233,18 @@ class Weather(Frame):
             location2 = "%s, %s" % (location_obj['city'], location_obj['region_code'])
 
             # get weather
-            weather_req_url = "https://api.darksky.net/forecast/%s/%s,%s?lang=%s&units=%s" % (weather_api_token, lat,lon,weather_lang,weather_unit)
+            weather_req_url = "https://api.darksky.net/forecast/%s/%s,%s?lang=%s&units=%s" % (
+                weather_api_token, lat, lon, weather_lang, weather_unit)
         else:
             location2 = ""
             # get weather
-            weather_req_url = "https://api.darksky.net/forecast/%s/%s,%s?lang=%s&units=%s" % (weather_api_token, latitude, longitude, weather_lang, weather_unit)
+            weather_req_url = "https://api.darksky.net/forecast/%s/%s,%s?lang=%s&units=%s" % (
+                weather_api_token, latitude, longitude, weather_lang, weather_unit)
 
         r = requests.get(weather_req_url)
         weather_obj = json.loads(r.text)
 
-        degree_sign= u'\N{DEGREE SIGN}'
+        degree_sign = u'\N{DEGREE SIGN}'
         temperature2 = "%s%s" % (str(int(weather_obj['currently']['temperature'])), degree_sign)
         currently2 = weather_obj['currently']['summary']
         forecast2 = weather_obj["hourly"]["summary"]
@@ -257,6 +287,32 @@ class Weather(Frame):
                 self.locationLbl.config(text=location2)
 
         self.after(600000, self.get_weather)
+
+
+class WeatherGui(Frame):
+    def __init__(self, parent, event_name=""):
+        Frame.__init__(self, parent, bg='black')
+
+    @staticmethod
+    def update_temperature(current_temperature, temperatureLbl):
+        if current_temperature:
+            temperatureLbl.config(text=current_temperature + u'\N{DEGREE SIGN}')
+
+    @staticmethod
+    def update_icon(current_main_description, iconLbl):
+        if current_main_description in icon_lookup:
+            image = Image.open(icon_lookup[current_main_description])
+            image = image.resize((100, 100), Image.ANTIALIAS)
+            image = image.convert('RGB')
+            photo = ImageTk.PhotoImage(image)
+
+            iconLbl.config(image=photo)
+            iconLbl.image = photo
+
+    @staticmethod
+    def update_description(current_description, currentlyLbl):
+        if current_description:
+            currentlyLbl.config(text=current_description.title())
 
 
 class Calendar(Frame):

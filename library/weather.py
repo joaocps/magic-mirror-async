@@ -17,7 +17,11 @@ class Weather:
 
     @property
     def current_temperature(self):
-        return self._data['current']['temp']
+        return round(self._data['current']['temp'])
+
+    @property
+    def current_main_description(self):
+        return self._data['current']['weather'][0]['main']
 
     @property
     def current_description(self):

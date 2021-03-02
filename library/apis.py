@@ -93,8 +93,5 @@ class WeatherLocation:
                        f'&lang={self.lang}' \
                        f'&units={self.units}'
         raw_weather = await api.retrieve(url=formatted_url)
-        print(raw_weather['daily'][0])
-        for x in raw_weather['daily']:
-            print(x)
         formatted_weather = Weather(raw_weather)
         return formatted_weather
