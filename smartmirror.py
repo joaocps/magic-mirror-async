@@ -58,7 +58,7 @@ class Clock(Frame):
         self.timeLbl.pack(side=TOP, anchor=E)
         # initialize day of week
         self.current_day = ''
-        self.dayLbl = Label(self, text=self.current_day, font=('Helvetica', small_text_size), fg="white", bg="black")
+        self.dayLbl = Label(self, text=self.current_day, font=('Helvetica', medium_text_size), fg="white", bg="black")
         self.dayLbl.pack(side=TOP, anchor=E)
         # initialize date label
         self.current_date = ''
