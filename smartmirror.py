@@ -237,13 +237,13 @@ class Weather(Frame):
         # Current description
         self.currentlyLbl = Label(self, font=('Helvetica', medium_text_size), fg="white", bg="black")
         self.currentlyLbl.pack(side=TOP, anchor=W)
-
+        
         # self.forecastLbl = Label(self, font=('Helvetica', small_text_size), fg="white", bg="black")
         # self.forecastLbl.pack(side=TOP, anchor=W)
         # self.locationLbl = Label(self, font=('Helvetica', small_text_size), fg="white", bg="black")
         # self.locationLbl.pack(side=TOP, anchor=W)
         self.get_weather()
-dsde
+
     async def get_weather(self):
         """
         Get weather from Anadia/PT and send to gui updater queue every minute.
