@@ -237,7 +237,6 @@ class Weather(Frame):
         # Current description
         self.currentlyLbl = Label(self, font=('Helvetica', medium_text_size), fg="white", bg="black")
         self.currentlyLbl.pack(side=TOP, anchor=W)
-        
         # self.forecastLbl = Label(self, font=('Helvetica', small_text_size), fg="white", bg="black")
         # self.forecastLbl.pack(side=TOP, anchor=W)
         # self.locationLbl = Label(self, font=('Helvetica', small_text_size), fg="white", bg="black")
