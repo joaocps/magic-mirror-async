@@ -47,6 +47,17 @@ icon_lookup = {
     'hail': "assests/Hail.png"  # hail
 }
 
+# Week Day Mapping -> I do not want to use locale
+week_day_lookup = {
+    'Monday': "Segunda-Feira",
+    'Tuesday': "Terça-Feira",
+    'Wednesday': "Quarta-Feira",
+    'Thursday': "Quinta-Feira",
+    'Friday': "Sexta-Feira",
+    'Saturday': "Sábado",
+    'Sunday': "Domingo"
+}
+
 # Queue with gui update tasks
 gui_queue = Queue()
 
@@ -92,12 +103,15 @@ class Clock(Frame):
             if current_time != self.current_time:
                 self.current_time = current_time
                 gui_queue.put(lambda: ClockGui(self.parent).update_time(current_time, self.timeLbl))
+                LOGGER.info("New time/hour sent to GUI queue.")
             if current_date != self.current_date:
                 self.current_date = current_date
                 gui_queue.put(lambda: ClockGui(self.parent).update_date(current_date, self.dateLbl))
+                LOGGER.info("New date sent to GUI queue.")
             if current_day != self.current_day:
                 self.current_day = current_day
                 gui_queue.put(lambda: ClockGui(self.parent).update_day(current_day, self.dayLbl))
+                LOGGER.info("New week day sent to GUI queue.")
 
             await asyncio.sleep(1)
 
@@ -114,16 +128,23 @@ class ClockGui(Frame):
     def update_time(current_time, time_lbl):
         if current_time:
             time_lbl.config(text=current_time)
+            LOGGER.info("GUI updated with new time.")
 
     @staticmethod
     def update_date(current_date, date_lbl):
         if current_date:
             date_lbl.config(text=current_date)
+            LOGGER.info("GUI updated with new date.")
 
     @staticmethod
     def update_day(current_day, day_lbl):
         if current_day:
-            day_lbl.config(text=current_day)
+            if current_day in week_day_lookup:
+                day_lbl.config(text=week_day_lookup[current_day])
+            else:
+                day_lbl.config(text=current_day)
+            LOGGER.info("GUI updated with new week day.")
+
 
 
 class News(Frame):
@@ -137,7 +158,7 @@ class News(Frame):
         Frame.__init__(self, parent, *args, **kwargs)
         self.config(bg='black')
         # initialize titles
-        self.title_pt = 'News Portugal'
+        self.title_pt = 'Notícias Portugal'
         self.title_uk = 'News United Kingdom'
         # initialize news from pt label
         self.newsLblPt = Label(self, text=self.title_pt, font=('Helvetica', medium_text_size), fg="white", bg="black")
@@ -176,10 +197,12 @@ class News(Frame):
 
                 for post in news_pt:
                     gui_queue.put(lambda: NewsGui(self.headlinesContainerPt, post).pack(side=TOP, anchor=W))
+                    LOGGER.info("Headlines from Portugal sent to GUI queue.")
                     # Add effect of waterfall
                     time.sleep(1)
                 for post in news_uk:
                     gui_queue.put(lambda: NewsGui(self.headlinesContainerUk, post).pack(side=TOP, anchor=W))
+                    LOGGER.info("Headlines from Uk sent to GUI queue.")
                     # Add effect of waterfall
                     time.sleep(1)
 
@@ -207,6 +230,7 @@ class NewsGui(Frame):
         self.eventNameLbl = Label(self, text=self.eventName, font=('Helvetica', small_text_size), fg="white",
                                   bg="black")
         self.eventNameLbl.pack(side=LEFT, anchor=N)
+        LOGGER.info("GUI updated with new headline.")
 
 
 class Weather(Frame):
@@ -241,12 +265,12 @@ class Weather(Frame):
         # self.forecastLbl.pack(side=TOP, anchor=W)
         # self.locationLbl = Label(self, font=('Helvetica', small_text_size), fg="white", bg="black")
         # self.locationLbl.pack(side=TOP, anchor=W)
-        
+
         self.get_weather()
 
     async def get_weather(self):
         """
-        Get weather from Anadia/PT and send to gui updater queue every minute.
+        Get weather from Anadia/PT and send to gui updater queue every 3 minutes.
         Weather object contains forecast information -> weather.forecast
         :return:
         """
@@ -263,16 +287,19 @@ class Weather(Frame):
                     self.temperature = weather.current_temperature
                     gui_queue.put(lambda: WeatherGui(self.parent)
                                   .update_temperature(str(weather.current_temperature), self.temperatureLbl))
+                    LOGGER.info("Current temperature sent to GUI queue.")
                 if weather.current_main_description != self.icon:
                     self.icon = weather.current_main_description
                     gui_queue.put(lambda: WeatherGui(self.parent)
                                   .update_icon(weather.current_main_description, self.iconLbl))
+                    LOGGER.info("Current icon sent to GUI queue.")
                 if weather.current_description != self.current_description:
                     self.current_description = weather.current_description
                     gui_queue.put(lambda: WeatherGui(self.parent)
                                   .update_description(weather.current_description, self.currentlyLbl))
+                    LOGGER.info("Current weather description sent to GUI queue.")
 
-                await asyncio.sleep(60)
+                await asyncio.sleep(180)
 
     # Dummy method, just for idea caching !
     """
@@ -360,6 +387,7 @@ class WeatherGui(Frame):
     def update_temperature(current_temperature, temperatureLbl):
         if current_temperature:
             temperatureLbl.config(text=current_temperature + u'\N{DEGREE SIGN}')
+            LOGGER.info("GUI updated with new current temperature.")
 
     @staticmethod
     def update_icon(current_main_description, iconLbl):
@@ -372,11 +400,15 @@ class WeatherGui(Frame):
 
             iconLbl.config(image=photo)
             iconLbl.image = photo
+            LOGGER.info("GUI updated with new icon.")
+
 
     @staticmethod
     def update_description(current_description, currentlyLbl):
         if current_description:
             currentlyLbl.config(text=current_description.title())
+            LOGGER.info("GUI updated with new current weather description.")
+
 
 
 class FullscreenWindow:
@@ -444,6 +476,7 @@ class FullscreenWindow:
         while True:
             try:
                 fn = gui_queue.get_nowait()
+                LOGGER.info(f"Task {fn} removed from GUI queue and performed.")
             except queue.Empty:
                 break
             fn()
