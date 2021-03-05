@@ -17,7 +17,7 @@ from library.apis import NEWS_API, NewsLocation, WEATHER_API, WeatherLocation
 
 # Logging variables config
 logging.captureWarnings(True)
-logging.basicConfig(filename='mirror.log', encoding='utf-8', level=logging.INFO)
+logging.basicConfig(filename='mirror.log', encoding='utf-8', level=logging.DEBUG)
 LOGGER = logging.getLogger(__name__)
 coloredlogs.install(level='INFO')
 
