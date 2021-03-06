@@ -250,6 +250,7 @@ class Weather(Frame):
         self.forecast = None
         self.location = None
         self.current_description = None
+        self.forecast_info = None
         # Initialize Temperature Frame
         self.degreeFrm = Frame(self, bg="black")
         self.degreeFrm.pack(side=TOP, anchor=W)
@@ -262,10 +263,15 @@ class Weather(Frame):
         # Current description
         self.currentlyLbl = Label(self, font=('Helvetica', medium_text_size), fg="white", bg="black")
         self.currentlyLbl.pack(side=TOP, anchor=W)
-        # self.forecastLbl = Label(self, font=('Helvetica', small_text_size), fg="white", bg="black")
-        # self.forecastLbl.pack(side=TOP, anchor=W)
-        # self.locationLbl = Label(self, font=('Helvetica', small_text_size), fg="white", bg="black")
-        # self.locationLbl.pack(side=TOP, anchor=W)
+        # Forecast next day
+        self.forecast1Lbl = Label(self, font=('Helvetica', xsmall_text_size), fg="white", bg="black")
+        self.forecast1Lbl.pack(side=TOP, anchor=W)
+        # Forecast next next day
+        self.forecast2Lbl = Label(self, font=('Helvetica', xsmall_text_size), fg="white", bg="black")
+        self.forecast2Lbl.pack(side=TOP, anchor=W)
+        # Forecast next next next day
+        self.forecast3Lbl = Label(self, font=('Helvetica', xsmall_text_size), fg="white", bg="black")
+        self.forecast3Lbl.pack(side=TOP, anchor=W)
 
         self.get_weather()
 
@@ -300,75 +306,15 @@ class Weather(Frame):
                                   .update_description(weather.current_description, self.currentlyLbl))
                     LOGGER.info("Current weather description sent to GUI queue.")
 
+                # Always update forecast after sleep
+                # TODO: Update forecast when ?
+                gui_queue.put(lambda: WeatherGui(self.parent)
+                              .update_forecast(weather.forecast,
+                                               self.forecast1Lbl,
+                                               self.forecast2Lbl,
+                                               self.forecast3Lbl))
+
                 await asyncio.sleep(180)
-
-    # Dummy method, just for idea caching !
-    """
-    def get_weathers(self):
-
-        if latitude is None and longitude is None:
-
-            lat = location_obj['latitude']
-            lon = location_obj['longitude']
-
-            location2 = "%s, %s" % (location_obj['city'], location_obj['region_code'])
-
-            # get weather
-            weather_req_url = "https://api.darksky.net/forecast/%s/%s,%s?lang=%s&units=%s" % (
-                weather_api_token, lat, lon, weather_lang, weather_unit)
-        else:
-            location2 = ""
-            # get weather
-            weather_req_url = "https://api.darksky.net/forecast/%s/%s,%s?lang=%s&units=%s" % (
-                weather_api_token, latitude, longitude, weather_lang, weather_unit)
-
-        r = requests.get(weather_req_url)
-        weather_obj = json.loads(r.text)
-
-        degree_sign = u'\N{DEGREE SIGN}'
-        temperature2 = "%s%s" % (str(int(weather_obj['currently']['temperature'])), degree_sign)
-        currently2 = weather_obj['currently']['summary']
-        forecast2 = weather_obj["hourly"]["summary"]
-
-        icon_id = weather_obj['currently']['icon']
-        icon2 = None
-
-        if icon_id in icon_lookup:
-            icon2 = icon_lookup[icon_id]
-
-        if icon2 is not None:
-            if self.icon != icon2:
-                self.icon = icon2
-                image = Image.open(icon2)
-                image = image.resize((100, 100), Image.ANTIALIAS)
-                image = image.convert('RGB')
-                photo = ImageTk.PhotoImage(image)
-
-                self.iconLbl.config(image=photo)
-                self.iconLbl.image = photo
-        else:
-            # remove image
-            self.iconLbl.config(image='')
-
-        if self.currently != currently2:
-            self.currently = currently2
-            self.currentlyLbl.config(text=currently2)
-        if self.forecast != forecast2:
-            self.forecast = forecast2
-            self.forecastLbl.config(text=forecast2)
-        if self.temperature != temperature2:
-            self.temperature = temperature2
-            self.temperatureLbl.config(text=temperature2)
-        if self.location != location2:
-            if location2 == ", ":
-                self.location = "Cannot Pinpoint Location"
-                self.locationLbl.config(text="Cannot Pinpoint Location")
-            else:
-                self.location = location2
-                self.locationLbl.config(text=location2)
-
-        self.after(600000, self.get_weather)
-    """
 
 
 class WeatherGui(Frame):
@@ -410,6 +356,19 @@ class WeatherGui(Frame):
             currentlyLbl.config(text=current_description.title())
             LOGGER.info("GUI updated with new current weather description.")
 
+
+    @staticmethod
+    def update_forecast(forecast, forecast1Lbl, forecast2Lbl, forecast3Lbl):
+        for i in range(1,4):
+            forecast_info = f'{week_day_lookup[forecast[i].week_day]} - ' \
+                            f'{forecast[i].min_temperature}\N{DEGREE SIGN} / ' \
+                            f'{forecast[i].max_temperature}\N{DEGREE SIGN}'
+            if i == 1:
+                forecast1Lbl.config(text=forecast_info)
+            if i == 2:
+                forecast2Lbl.config(text=forecast_info)
+            if i == 3:
+                forecast3Lbl.config(text=forecast_info)
 
 
 class FullscreenWindow:
