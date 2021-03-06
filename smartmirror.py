@@ -17,7 +17,6 @@ from library.apis import NEWS_API, NewsLocation, WEATHER_API, WeatherLocation
 
 # Logging variables config
 logging.captureWarnings(True)
-logging.basicConfig(filename='mirror.log', encoding='utf-8', level=logging.DEBUG)
 LOGGER = logging.getLogger(__name__)
 coloredlogs.install(level='INFO')
 
@@ -26,6 +25,7 @@ xlarge_text_size = 94
 large_text_size = 48
 medium_text_size = 28
 small_text_size = 18
+xsmall_text_size = 14
 TIME_ZONE = pytz.timezone('Europe/Lisbon')
 TIME_FORMAT: str = '%H:%M'
 DATE_FORMAT: str = '%d/%m/%Y'
@@ -75,7 +75,7 @@ class Clock(Frame):
         self.parent = parent
         # initialize time label
         self.current_time = ''
-        self.timeLbl = Label(self, font=('Helvetica', xlarge_text_size), fg="white", bg="black")
+        self.timeLbl = Label(self, font=('Helvetica', large_text_size), fg="white", bg="black")
         self.timeLbl.pack(side=TOP, anchor=E)
         # initialize day of week
         self.current_day = ''
@@ -228,7 +228,7 @@ class NewsGui(Frame):
         self.iconLbl.pack(side=LEFT, anchor=N)
 
         self.eventName = event_name
-        self.eventNameLbl = Label(self, text=self.eventName, font=('Helvetica', small_text_size), fg="white",
+        self.eventNameLbl = Label(self, text=self.eventName, font=('Helvetica', xsmall_text_size), fg="white",
                                   bg="black")
         self.eventNameLbl.pack(side=LEFT, anchor=N)
         LOGGER.info("GUI updated with new headline.")
