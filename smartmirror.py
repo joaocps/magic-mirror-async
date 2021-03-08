@@ -266,12 +266,15 @@ class Weather(Frame):
         # Forecast next day
         self.forecast1Lbl = Label(self, font=('Helvetica', xsmall_text_size), fg="white", bg="black")
         self.forecast1Lbl.pack(side=TOP, anchor=W)
+        self.forecast1Icon = Label(self, bg='black')
         # Forecast next next day
         self.forecast2Lbl = Label(self, font=('Helvetica', xsmall_text_size), fg="white", bg="black")
         self.forecast2Lbl.pack(side=TOP, anchor=W)
+        self.forecast2Icon = Label(self, bg='black')
         # Forecast next next next day
         self.forecast3Lbl = Label(self, font=('Helvetica', xsmall_text_size), fg="white", bg="black")
         self.forecast3Lbl.pack(side=TOP, anchor=W)
+        self.forecast3Icon = Label(self, bg='black')
 
         self.get_weather()
 
@@ -312,7 +315,10 @@ class Weather(Frame):
                               .update_forecast(weather.forecast,
                                                self.forecast1Lbl,
                                                self.forecast2Lbl,
-                                               self.forecast3Lbl))
+                                               self.forecast3Lbl,
+                                               self.forecast1Icon,
+                                               self.forecast2Icon,
+                                               self.forecast3Icon))
 
                 await asyncio.sleep(180)
 
@@ -358,17 +364,29 @@ class WeatherGui(Frame):
 
 
     @staticmethod
-    def update_forecast(forecast, forecast1Lbl, forecast2Lbl, forecast3Lbl):
+    def update_forecast(forecast, forecast1Lbl, forecast2Lbl, forecast3Lbl, forecast1Icon, forecast2Icon, forecast3Icon):
         for i in range(1,4):
             forecast_info = f'{week_day_lookup[forecast[i].week_day]} - ' \
                             f'{forecast[i].min_temperature}\N{DEGREE SIGN} / ' \
                             f'{forecast[i].max_temperature}\N{DEGREE SIGN}'
+
+            image = Image.open(icon_lookup[forecast[i].short_description])
+            image = image.resize((25, 25), Image.ANTIALIAS)
+            image = image.convert('RGB')
+            photo = ImageTk.PhotoImage(image)
+
             if i == 1:
                 forecast1Lbl.config(text=forecast_info)
+                forecast1Icon.config(image=photo)
+                forecast1Icon.image = photo
             if i == 2:
                 forecast2Lbl.config(text=forecast_info)
+                forecast2Icon.config(image=photo)
+                forecast2Icon.image = photo
             if i == 3:
                 forecast3Lbl.config(text=forecast_info)
+                forecast3Icon.config(image=photo)
+                forecast3Icon.image = photo
 
 
 class FullscreenWindow:
