@@ -68,12 +68,16 @@ class NewsLocation:
     async def get(self, api):
         if self.country == "pt":
             raw_news = await api.retrieve(url=API_NEWS_PORTUGAL)
-            news = News(raw_news)
-            return news.titles
+            if raw_news is not None:
+                news = News(raw_news)
+                return news.titles
+            return ['No Internet Connection']
         if self.country == "uk":
             raw_news = await api.retrieve(url=API_NEWS_UK)
-            news = News(raw_news)
-            return news.titles
+            if raw_news is not None:
+                news = News(raw_news)
+                return news.titles
+            return ['No Internet Connection']
 
 
 class WeatherLocation:
@@ -93,5 +97,7 @@ class WeatherLocation:
                         f'&lang={self.lang}' \
                         f'&units={self.units}'
         raw_weather = await api.retrieve(url=formatted_url)
-        formatted_weather = Weather(raw_weather)
-        return formatted_weather
+        if raw_weather is not None:
+            formatted_weather = Weather(raw_weather)
+            return formatted_weather
+        return None

@@ -1,6 +1,7 @@
 # External Imports
 import logging
 import queue
+from asyncio import shield
 from queue import Queue
 from tkinter import *
 from datetime import datetime
@@ -182,32 +183,38 @@ class News(Frame):
         Get headlines from pt/uk and send to gui updater queue every 5 minutes.
         :return:
         """
-        async with aiohttp.ClientSession() as session:
-            api = NEWS_API(session)
-            while True:
-                for widget in self.headlinesContainerPt.winfo_children():
-                    widget.destroy()
-                for widget in self.headlinesContainerUk.winfo_children():
-                    widget.destroy()
+        try:
+            async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as session:
+                api = NEWS_API(session)
+                while True:
+                    for widget in self.headlinesContainerPt.winfo_children():
+                        widget.destroy()
+                    for widget in self.headlinesContainerUk.winfo_children():
+                        widget.destroy()
 
-                location_pt = NewsLocation("pt")
-                location_uk = NewsLocation("uk")
+                    location_pt = NewsLocation("pt")
+                    location_uk = NewsLocation("uk")
 
-                news_pt = await location_pt.get(api)
-                news_uk = await location_uk.get(api)
+                    news_pt = await location_pt.get(api)
+                    news_uk = await location_uk.get(api)
 
-                for post in news_pt:
-                    gui_queue.put(lambda: NewsGui(self.headlinesContainerPt, post).pack(side=TOP, anchor=W))
-                    LOGGER.info("Headlines from Portugal sent to GUI queue.")
-                    # Add effect of waterfall
-                    time.sleep(1)
-                for post in news_uk:
-                    gui_queue.put(lambda: NewsGui(self.headlinesContainerUk, post).pack(side=TOP, anchor=W))
-                    LOGGER.info("Headlines from Uk sent to GUI queue.")
-                    # Add effect of waterfall
-                    time.sleep(1)
+                    for post in news_pt:
+                        gui_queue.put(lambda: NewsGui(self.headlinesContainerPt, post).pack(side=TOP, anchor=W))
+                        LOGGER.info("Headlines from Portugal sent to GUI queue.")
+                        # Add effect of waterfall
+                        time.sleep(1)
+                    for post in news_uk:
+                        gui_queue.put(lambda: NewsGui(self.headlinesContainerUk, post).pack(side=TOP, anchor=W))
+                        LOGGER.info("Headlines from Uk sent to GUI queue.")
+                        # Add effect of waterfall
+                        time.sleep(1)
 
-                await asyncio.sleep(300)
+                    await asyncio.sleep(300)
+        except asyncio.TimeoutError:
+            LOGGER.critical("Timeout error from headlines, waiting ...")
+            await asyncio.sleep(5)
+            return await self.get_headlines()
+
 
 
 class NewsGui(Frame):
@@ -284,43 +291,50 @@ class Weather(Frame):
         Weather object contains forecast information -> weather.forecast
         :return:
         """
-        async with aiohttp.ClientSession() as session:
-            api = WEATHER_API(session)
-            while True:
-                # Location -> Anadia
-                location = WeatherLocation(latitude=40.440811, longitude=-8.435070)
+        try:
+            async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as session:
+                api = WEATHER_API(session)
+                while True:
+                    # Location -> Anadia
+                    location = WeatherLocation(latitude=40.440811, longitude=-8.435070)
 
-                # Get weather for my location
-                weather = await location.get(api)
+                    # Get weather for my location
+                    weather = await location.get(api)
 
-                if weather.current_temperature != self.temperature:
-                    self.temperature = weather.current_temperature
-                    gui_queue.put(lambda: WeatherGui(self.parent)
-                                  .update_temperature(str(weather.current_temperature), self.temperatureLbl))
-                    LOGGER.info("Current temperature sent to GUI queue.")
-                if weather.current_main_description != self.icon:
-                    self.icon = weather.current_main_description
-                    gui_queue.put(lambda: WeatherGui(self.parent)
-                                  .update_icon(weather.current_main_description, self.iconLbl))
-                    LOGGER.info("Current icon sent to GUI queue.")
-                if weather.current_description != self.current_description:
-                    self.current_description = weather.current_description
-                    gui_queue.put(lambda: WeatherGui(self.parent)
-                                  .update_description(weather.current_description, self.currentlyLbl))
-                    LOGGER.info("Current weather description sent to GUI queue.")
+                    if weather is not None:
+                        if weather.current_temperature != self.temperature:
+                            LOGGER.error(type(weather.current_temperature))
+                            self.temperature = weather.current_temperature
+                            gui_queue.put(lambda: WeatherGui(self.parent)
+                                          .update_temperature(str(weather.current_temperature), self.temperatureLbl))
+                            LOGGER.info("Current temperature sent to GUI queue.")
+                        if weather.current_main_description != self.icon:
+                            self.icon = weather.current_main_description
+                            gui_queue.put(lambda: WeatherGui(self.parent)
+                                          .update_icon(weather.current_main_description, self.iconLbl))
+                            LOGGER.info("Current icon sent to GUI queue.")
+                        if weather.current_description != self.current_description:
+                            self.current_description = weather.current_description
+                            gui_queue.put(lambda: WeatherGui(self.parent)
+                                          .update_description(weather.current_description, self.currentlyLbl))
+                            LOGGER.info("Current weather description sent to GUI queue.")
 
-                # Always update forecast after sleep
-                # TODO: Update forecast when ?
-                gui_queue.put(lambda: WeatherGui(self.parent)
-                              .update_forecast(weather.forecast,
-                                               self.forecast1Lbl,
-                                               self.forecast2Lbl,
-                                               self.forecast3Lbl,
-                                               self.forecast1Icon,
-                                               self.forecast2Icon,
-                                               self.forecast3Icon))
+                        # Always update forecast after sleep
+                        # TODO: Update forecast when ?
+                        gui_queue.put(lambda: WeatherGui(self.parent)
+                                      .update_forecast(weather.forecast,
+                                                       self.forecast1Lbl,
+                                                       self.forecast2Lbl,
+                                                       self.forecast3Lbl,
+                                                       self.forecast1Icon,
+                                                       self.forecast2Icon,
+                                                       self.forecast3Icon))
 
-                await asyncio.sleep(180)
+                    await asyncio.sleep(180)
+        except asyncio.TimeoutError:
+            LOGGER.critical("Timeout error from weather, waiting ...")
+            await asyncio.sleep(5)
+            return await self.get_weather()
 
 
 class WeatherGui(Frame):

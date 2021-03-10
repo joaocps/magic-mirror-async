@@ -39,5 +39,3 @@ class Weather:
         forecasts = [WeatherForecast(forecast_data) for forecast_data in self._data['daily']]
         return forecasts
 
-    def __repr__(self):
-        return f'{self.current_temperature}º right now'
