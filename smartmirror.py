@@ -258,6 +258,9 @@ class Weather(Frame):
         self.location = None
         self.current_description = None
         self.forecast_info = None
+        # Current weather container
+        self.currentWeatherContainer = Frame(self, bg="black")
+        self.currentWeatherContainer.pack(side=TOP, anchor=W)
         # Initialize Temperature Frame
         self.degreeFrm = Frame(self, bg="black")
         self.degreeFrm.pack(side=TOP, anchor=W)
@@ -270,18 +273,31 @@ class Weather(Frame):
         # Current description
         self.currentlyLbl = Label(self, font=('Helvetica', medium_text_size), fg="white", bg="black")
         self.currentlyLbl.pack(side=TOP, anchor=W)
+        # Forecast container
+        self.forecastContainer = Frame(self, bg="black")
+        self.forecastContainer.pack(side=LEFT, anchor=W)
         # Forecast next day
-        self.forecast1Lbl = Label(self, font=('Helvetica', xsmall_text_size), fg="white", bg="black")
-        self.forecast1Lbl.pack(side=TOP, anchor=W)
-        self.forecast1Icon = Label(self, bg='black')
+        self.forecast1Container = Frame(self.forecastContainer, bg="black")
+        self.forecast1Container.pack(side=TOP, anchor=W)
+        self.forecast1Icon = Label(self.forecast1Container, bg='black')
+        self.forecast1Icon.pack(anchor=W)
+        self.forecast1Lbl = Label(self.forecast1Container, font=('Helvetica', xsmall_text_size), fg="white", bg="black")
+        self.forecast1Lbl.pack(side=LEFT, anchor=W)
         # Forecast next next day
-        self.forecast2Lbl = Label(self, font=('Helvetica', xsmall_text_size), fg="white", bg="black")
-        self.forecast2Lbl.pack(side=TOP, anchor=W)
-        self.forecast2Icon = Label(self, bg='black')
+        self.forecast2Container = Frame(self.forecastContainer, bg="black")
+        self.forecast2Container.pack(side=TOP, anchor=W)
+        self.forecast2Icon = Label(self.forecast2Container, bg='black')
+        self.forecast2Icon.pack(anchor=W)
+        self.forecast2Lbl = Label(self.forecast2Container, font=('Helvetica', xsmall_text_size), fg="white", bg="black")
+        self.forecast2Lbl.pack(side=LEFT, anchor=W)
         # Forecast next next next day
-        self.forecast3Lbl = Label(self, font=('Helvetica', xsmall_text_size), fg="white", bg="black")
-        self.forecast3Lbl.pack(side=TOP, anchor=W)
-        self.forecast3Icon = Label(self, bg='black')
+        self.forecast3Container = Frame(self.forecastContainer, bg="black")
+        self.forecast3Container.pack(side=TOP, anchor=W)
+        self.forecast3Icon = Label(self.forecast3Container, bg='black')
+        self.forecast3Icon.pack(anchor=W)
+        self.forecast3Lbl = Label(self.forecast3Container, font=('Helvetica', xsmall_text_size), fg="white", bg="black")
+        self.forecast3Lbl.pack(side=LEFT, anchor=W)
+
 
         self.get_weather()
 
@@ -303,25 +319,23 @@ class Weather(Frame):
 
                     if weather is not None:
                         if weather.current_temperature != self.temperature:
-                            LOGGER.error(type(weather.current_temperature))
                             self.temperature = weather.current_temperature
-                            gui_queue.put(lambda: WeatherGui(self.parent)
+                            gui_queue.put(lambda: WeatherGui(self.currentWeatherContainer)
                                           .update_temperature(str(weather.current_temperature), self.temperatureLbl))
                             LOGGER.info("Current temperature sent to GUI queue.")
                         if weather.current_main_description != self.icon:
                             self.icon = weather.current_main_description
-                            gui_queue.put(lambda: WeatherGui(self.parent)
+                            gui_queue.put(lambda: WeatherGui(self.currentWeatherContainer)
                                           .update_icon(weather.current_main_description, self.iconLbl))
                             LOGGER.info("Current icon sent to GUI queue.")
                         if weather.current_description != self.current_description:
                             self.current_description = weather.current_description
-                            gui_queue.put(lambda: WeatherGui(self.parent)
+                            gui_queue.put(lambda: WeatherGui(self.currentWeatherContainer)
                                           .update_description(weather.current_description, self.currentlyLbl))
                             LOGGER.info("Current weather description sent to GUI queue.")
 
-                        # Always update forecast after sleep
                         # TODO: Update forecast when ?
-                        gui_queue.put(lambda: WeatherGui(self.parent)
+                        gui_queue.put(lambda: WeatherGui(self.forecastContainer)
                                       .update_forecast(weather.forecast,
                                                        self.forecast1Lbl,
                                                        self.forecast2Lbl,
@@ -342,8 +356,6 @@ class WeatherGui(Frame):
         """
         Update Gui labels with associated weather values like temperature, description and Icon associated.
         Icons lookup with images located inside /assets folder
-
-        TODO: Forecast positioning with min temperature, max temperature and icon
 
         :param parent:
         :param event_name:
@@ -379,8 +391,8 @@ class WeatherGui(Frame):
 
     @staticmethod
     def update_forecast(forecast, forecast1Lbl, forecast2Lbl, forecast3Lbl, forecast1Icon, forecast2Icon, forecast3Icon):
-        for i in range(1,4):
-            forecast_info = f'{week_day_lookup[forecast[i].week_day]} - ' \
+        for i in range(1, 4):
+            forecast_info = f'- {week_day_lookup[forecast[i].week_day]} - ' \
                             f'{forecast[i].min_temperature}\N{DEGREE SIGN} / ' \
                             f'{forecast[i].max_temperature}\N{DEGREE SIGN}'
 
@@ -393,14 +405,17 @@ class WeatherGui(Frame):
                 forecast1Lbl.config(text=forecast_info)
                 forecast1Icon.config(image=photo)
                 forecast1Icon.image = photo
+                forecast1Icon.pack(side=LEFT, anchor=W)
             if i == 2:
                 forecast2Lbl.config(text=forecast_info)
                 forecast2Icon.config(image=photo)
                 forecast2Icon.image = photo
+                forecast2Icon.pack(side=LEFT, anchor=N)
             if i == 3:
                 forecast3Lbl.config(text=forecast_info)
                 forecast3Icon.config(image=photo)
                 forecast3Icon.image = photo
+                forecast3Icon.pack(side=LEFT, anchor=N)
 
 
 class FullscreenWindow:
