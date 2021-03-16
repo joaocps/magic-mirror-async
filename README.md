@@ -34,10 +34,16 @@ Time-Lapse -> https://www.youtube.com/watch?v=CmpsJ-a0FWg
 
 ### Stack
 
-Software | Price
+Software | Version
 ------------ | -------------
-Content from cell 1 | Content from cell 2
-Content in the first column | Content in the second column
+python3 | >= 3.6
+python3-tk | 8.6.x
+aiohttp | 3.7.4
+asyncio | 3.4.3
+requests | 2.25.1
+feedparser | 6.0.2
+pillow | 8.1.1
+coloredlogs | 15.0
 
 ### Features
 
