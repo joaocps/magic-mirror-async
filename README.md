@@ -54,6 +54,10 @@ coloredlogs | 15.0
 
 ![Diagram](/pictures/feature_diagram.png)
 
+TL:DR | 
+------------ | 
+In this case it was necessary to abstract the gui from the internal ordering processes. This way, a queue is created that receives update instructions for the gui whenever they are different from the current displayed value. The event loop contains the various tasks with different waiting times due to their greater need for updating. When the task is performed, the values are compared with the current values of the gui, if they are different they jump to the queue and are updated.
+
 The asyncio package is billed by the Python documentation as a library to write concurrent code. However, async IO is not threading, nor is it multiprocessing. It is not built on top of either of these. It has been said in other words that async IO gives a feeling of concurrency despite using a single thread in a single process. Coroutines (a central feature of async IO) can be scheduled concurrently, but they are not inherently concurrent.
 
 - Asynchronous routines are able to “pause” while waiting on their ultimate result and let other routines run in the meantime.
@@ -74,10 +78,6 @@ Most likely you have already watched the television series: The Queen's Gambit. 
 **Asynchronous version:** Judit moves from table to table, making one move at each table. She leaves the table and lets the opponent make their next move during the wait time. One move on all 24 games takes Judit 24 * 5 == 120 seconds, or 2 minutes. The entire exhibition is now cut down to 120 * 30 == 3600 seconds, or just 1 hour.
 
 There is only one Judit, who has only two hands and makes only one move at a time by herself. But playing asynchronously cuts the exhibition time down from 12 hours to one. So, cooperative multitasking is a fancy way of saying that a program’s event loop (more on that later) communicates with multiple tasks to let each take turns running at the optimal time. Async IO takes long waiting periods in which functions would otherwise be blocking and allows other functions to run during that downtime.
-
-TL:DR | 
------------- | 
-In this case it was necessary to abstract the gui from the internal ordering processes. This way, a queue is created that receives update instructions for the gui whenever they are different from the current displayed value. The event loop contains the various tasks with different waiting times due to their greater need for updating. When the task is performed, the values are compared with the current values of the gui, if they are different they jump to the queue and are updated.
 
 ### Setup
 
@@ -112,6 +112,9 @@ python3 smartmirror.py
 ```
 
 ## Hardware
+
+![material](/pictures/material.JPG)
+![oneway](/pictures/vidro_pelicula.jpg)
 
 ### Stack
 Hardware | Price
