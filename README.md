@@ -116,8 +116,15 @@ python3 smartmirror.py
 ### Stack
 Hardware | Price
 ------------ | -------------
-Content from cell 1 | Content from cell 2
-Content in the first column | Content in the second column
+RaspberryPI 4 model B | +- 30€
+Old computer screen | +- 50€
+Wooden slats | +- 15€
+Wood glue and Sandpaper | +- 3€
+Varnish | +- 5€
+Glass | +- 5€
+One Way mirror FILM | +- 15€
+
+
 
 ## Credits
 
