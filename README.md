@@ -81,6 +81,36 @@ In this case it was necessary to abstract the gui from the internal ordering pro
 
 ### Setup
 
+- Create the Virtual Environment
+
+```
+python3 -m venv venv
+```
+
+- Activate the virtual environment
+
+```
+source venv/bin/activate
+```
+
+- Fork the Project
+
+```
+git clone https://github.com/joaocps/magic-mirror-async.git
+```
+
+- Install requirements.txt
+
+```
+pip install -r requirements.txt
+```
+
+- Run SmartMirror
+
+```
+python3 smartmirror.py
+```
+
 ## Hardware
 
 ### Stack
