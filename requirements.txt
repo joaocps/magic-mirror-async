@@ -5,3 +5,4 @@ aiohttp
 asyncio
 pytz
 coloredlogs
+python3-tk
