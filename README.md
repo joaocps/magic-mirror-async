@@ -24,7 +24,9 @@ If you like the work I did and helped you in some way don't forget to click on t
 
 ## General Info (TL;DR)
 
-General info HERE
+Smart-Mirror totally “Do It Yourself” with async requests to different api’s. The main objective would be to do all the work without resorting to existing software and build the structure for the mirror 100% by myself. I used asynchronous requests to obtain data from different apis like google news and weather to be able to present and update information from Portugal and UK.
+
+Time-Lapse -> https://www.youtube.com/watch?v=CmpsJ-a0FWg
 
 ## Software
 
