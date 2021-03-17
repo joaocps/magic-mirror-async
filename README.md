@@ -157,6 +157,14 @@ One Way mirror FILM | +- 15€
 
 ![Final Result](/pictures/final_result.jpg)
 
+## Contribute
+
+@vascocmarieiro with video editing skills !
+
 ## Credits
 
-@HackerShackOfficial
+Based on the idea of @HackerShackOfficial
+
+## Licence
+
+*GNU GENERAL PUBLIC LICENSE version 3* by [Free Software Foundation, Inc.](http://fsf.org/) converted to Markdown. Read the [original GPL v3](http://www.gnu.org/licenses/).
