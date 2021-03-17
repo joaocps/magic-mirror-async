@@ -131,6 +131,31 @@ One Way mirror FILM | +- 15€
 
 1. ***Wood structure***
 
+![madeira](/pictures/material_madeira.JPG)
+
+![madeira_diagram](/pictures/front_diagram.png)
+
+![madeira_after](/pictures/pós_secagem.JPG)
+
+2. ***Sand the wood and apply the varnish, if necessary apply the varnish more than once.***
+
+![verniz_after](/pictures/depois_verniz.png)
+
+3. ***Place the one way mirror film in the glass, the glass must be large enough to fit inside the structure. To attach the glass, use any metallic applique.***
+
+![vidro_after](/pictures/tinta_vidro.JPG)
+
+4. ***With the remains of wood apply to the corners of the structure in order to be able to center the screen. Do not forget to attach the monitor in some way so that it does not fall backwards.***
+
+![traseira](/pictures/traseira.png)
+
+5. ***Voilà! Final result before the connection with raspberriPI!***
+
+![frente](/pictures/finalbefore.JPG)
+
+6. ***Connects the raspberry to the monitor, the raspberry must be configured to display the image vertically. Run in the software, put in fullscreen and enjoy! :smile:***
+
+![Final Result](/pictures/final_result.jpg)
 
 ## Credits
 
